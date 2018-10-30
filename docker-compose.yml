@@ -1,0 +1,42 @@
+version: "3"
+services:
+  mongo:
+    image: mongo:3.6.2
+    volumes:
+      - mongo_data:/data/db
+    restart: always
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.2
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    restart: always
+    environment:
+      - http.host=0.0.0.0
+      - xpack.security.enabled=false
+      - transport.host=localhost
+      - network.host=0.0.0.0
+  graylog:
+    image: graylog/graylog:2.4.0-1
+    volumes:
+      - graylog_journal:/usr/share/graylog/data/journal
+    restart: always
+    environment:
+      - GRAYLOG_WEB_ENDPOINT_URI=http://${GRAYLOG2_HOST}:9000/api
+    links:
+      - mongo
+      - elasticsearch
+    depends_on:
+      - mongo
+      - elasticsearch
+    ports:
+      - "9000:9000"
+      - "514:514"
+      - "514:514/udp"
+      - "12201:12201"
+      - "12201:12201/udp"
+      - "12301:12301/udp"
+      - "12302:12302/udp"
+volumes:
+  mongo_data:
+  es_data:
+  graylog_journal:
